@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+			http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->	
+	<context:annotation-config />
+
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">    
+		<property name="location" value="classpath:config_secure.properties"/>
+   	</bean>  
+	
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    	<property name="driverClassName" value="${db.driver}"/>
+    	<property name="url" value="${db.jdbcurl}"/>
+    	<property name="username" value="${db.username}"/>
+    	<property name="password" value="${db.password}"/>
+	</bean>
+	
+	<!-- Mongo DB Configuration -->
+	<mongo:db-factory id="mongoDbFactory"
+                  host="${db.mongo_host}"
+                  port="${db.mongo_port}"
+                  dbname="${db.mongo_dbname}"
+                  username="${db.mongo_username}"
+                  password="${db.password}"/>                
+	
+	<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+	</bean>
+
+	<bean id="mySQLHandler" class="com.zousu.mongopresser.MySQLHandler">
+    	<property name="dataSource" ref="dataSource"/>
+    	<property name="dbName" value="${db.dbname}"/>
+	</bean>
+	
+	<bean id="mongoHandler" class="com.zousu.mongopresser.MongoHandler">
+		<property name="mongoOperation" ref="mongoTemplate"/>
+	</bean>
+	
+	<bean id="presser" class="com.zousu.mongopresser.Presser">
+		<property name="mySQLHandler" ref="mySQLHandler"/>
+		<property name="mongoHandler" ref="mongoHandler"/>
+	</bean>
+</beans>
